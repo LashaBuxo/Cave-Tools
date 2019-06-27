@@ -112,6 +112,7 @@ public class TCPServer
             String data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
             Debug.Log(data);
             CMD cmd = (CMD)(data[0] - '0');
+            Debug.Log("dddddddddd " + cmd);
             switch (cmd)
             {
                 case CMD.Hello:
