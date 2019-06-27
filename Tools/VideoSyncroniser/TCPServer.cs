@@ -93,12 +93,12 @@ public class TCPServer
     {
         this.server = new TcpListener(Address, Port);
         this.server.Start();
-        Console.WriteLine("Server Started");
+        Debug.Log("Server Started");
         while (true)
         {
-            Console.Write("Waiting for connection");
+            Debug.Log("Waiting for connection");
             TcpClient client = server.AcceptTcpClient();
-            Console.WriteLine("Connected!");
+            Debug.Log("Connected!");
             IPAddress clientAddress = IPAddress.Parse(((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString());
             if (!AllowedAddresses.Contains(clientAddress))
             {
@@ -108,7 +108,7 @@ public class TCPServer
             Byte[] bytes = new Byte[256];
             int i = stream.Read(bytes, 0, bytes.Length);
             String data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-            Console.WriteLine("Got Data: {0}", data);
+            Debug.Log(("Got Data: {0}", data));
             CMD cmd = (CMD)(data[0] - '0');
             switch (cmd)
             {
@@ -125,6 +125,7 @@ public class TCPServer
                     }
                         break;
                 case CMD.KeepAlive:
+                    Debug.Log("KeepAlive Received from " + clientAddress.ToString());
                     if (IsAdjusting && !ActiveAddresses.Contains(clientAddress))
                     {
                         if (!SecondaryActiveAddresses.Contains(clientAddress))
@@ -201,6 +202,7 @@ public class TCPServer
         Int32 minFrame = Int32.MaxValue;
         if (AdjustedCnt == ActiveAddresses.Count)
         {
+            Debug.Log("Adjsting!!!");
             foreach (KeyValuePair<IPAddress, Int32> item in Sent)
             {
                 minFrame = Math.Min(minFrame, item.Value);
@@ -209,7 +211,10 @@ public class TCPServer
             {
                 minFrame = Math.Min(minFrame, item.Value);
             }
-            VideoSynchroniser.Instance().AdjustedFrame = minFrame;
+            if (minFrame != Int32.MaxValue)
+            {
+                VideoSynchroniser.Instance().AdjustedFrame = minFrame;
+            }
         }
         Sent.Clear();
         Received.Clear();
