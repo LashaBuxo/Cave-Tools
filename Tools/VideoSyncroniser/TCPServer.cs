@@ -115,6 +115,7 @@ public class TCPServer
             switch (cmd)
             {
                 case CMD.Hello:
+                    Debug.Log("Received Hello Message");
                     data = string.Format("{0}|{1}", (int)CMD.Hello, VideoSynchroniser.Instance().CurrentTick);
                     bytes = System.Text.Encoding.ASCII.GetBytes(data);
                     stream.Write(bytes, 0, bytes.Length);
@@ -128,6 +129,7 @@ public class TCPServer
                     }
                     break;
                 case CMD.KeepAlive:
+                    Debug.Log("Received KeepAlive Message");
                     Debug.Log("KeepAlive Received from " + clientAddress.ToString());
                     if (IsAdjusting && !ActiveAddresses.Contains(clientAddress))
                     {
@@ -142,6 +144,7 @@ public class TCPServer
                     }
                     break;
                 case CMD.AdjustFrame:
+                    Debug.Log("Received AdjustFrame Message");
                     string[] chunks = data.Split('|');
                     int curFrame = int.Parse(chunks[1]);
                     Received.Add(clientAddress, curFrame);
