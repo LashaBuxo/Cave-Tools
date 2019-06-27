@@ -21,7 +21,8 @@ public class TrackingManager : MonoBehaviour
         public Vector3 position;
         public Vector3 rotation;
         public Color color;
-        public bool debug;
+        public bool drawTarget;
+        public bool simulate;
     }
 
     [Serializable]
@@ -74,7 +75,10 @@ public class TrackingManager : MonoBehaviour
 
     public static void loadConfigs(TrackingManager myScript)
     {
-        string path = Application.dataPath + "/StreamingAssets/trackingParams.json"; 
+        if (!Directory.Exists(Application.dataPath + "/StreamingAssets"))
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets");
+
+        string path = Application.dataPath + "/StreamingAssets/tracking_Params.json"; 
         try
         {
             StreamReader reader = new StreamReader(path, false);
@@ -120,7 +124,8 @@ public class TrackingManager : MonoBehaviour
                                                 tracking.kinectTrackers[i].position,
                                                 tracking.kinectTrackers[i].rotation,
                                                 tracking.kinectTrackers[i].port,
-                                                tracking.kinectTrackers[i].debug);
+                                                tracking.kinectTrackers[i].drawTarget,
+                                                 tracking.kinectTrackers[i].simulate);
             KinectSensors[i] = sensor;  
         }
     }

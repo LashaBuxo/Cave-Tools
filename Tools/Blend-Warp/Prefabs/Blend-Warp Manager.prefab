@@ -60,9 +60,7 @@ MonoBehaviour:
   blendMoveSpeed: 0.027
   pointSpeed: 0.354
   activeCameraDebugger: 0
-  cameraEditors:
-  - {fileID: 0}
-  - {fileID: 0}
+  cameraEditors: []
   message: 
 --- !u!114 &7304800863770619286
 MonoBehaviour:

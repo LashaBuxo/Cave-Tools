@@ -11,8 +11,8 @@ Shader "Unlit/BlendWarp"
 
 		_BlendingLeft("Left Blending size", Range(0.0, 1.0)) = 0
 		_BlendingRight("Right Blending size", Range(0.0, 1.0)) = 0
-		_BlendingTop("Top Blending size", Range(0.0, 1.0)) = 0
-		_BlendingBottom("Bottom Blending size", Range(0.0, 1.0)) = 0
+		_BlendingUp("Top Blending size", Range(0.0, 1.0)) = 0
+		_BlendingDown("Bottom Blending size", Range(0.0, 1.0)) = 0
 		_Transparency("Transparency", Range(0.0,0.5)) = 0.25
 
 		_FunctionDegree("Blending Function Degree", Range(0.1, 5.0)) = 1.0
@@ -35,8 +35,8 @@ Shader "Unlit/BlendWarp"
 
 				fixed _BlendingLeft;
 				fixed _BlendingRight;
-				fixed _BlendingTop;
-				fixed _BlendingBottom;
+				fixed _BlendingUp;
+				fixed _BlendingDown;
 				fixed _Transparency;
 				fixed _FunctionDegree;
 
@@ -79,19 +79,33 @@ Shader "Unlit/BlendWarp"
 					fixed4 renderTex = tex2D(_MainTex, i.uv);
 				// Apply the Brightness, Saturation, and Contrast calculations
 				float cur_x = i.uv.x;
+				float cur_y = i.uv.y;
+
+				float bright_val = 1;
+				bool flag = false; 
 
 				if (cur_x > 1 - _BlendingRight) {
-					float bright_val = _BrightnessAmount + pow(1 - cur_x, _FunctionDegree) / (_BlendingRight)*(1 - _BrightnessAmount);
-					renderTex.rgb = BrightnessSaturationContrast(renderTex.rgb, bright_val, _SaturationAmount, _ContrastAmount);
-				}
-
+					bright_val = bright_val*( _BrightnessAmount + pow(1 - cur_x, _FunctionDegree) / (_BlendingRight)*(1 - _BrightnessAmount));
+					flag = true;
+				} 
 				if (cur_x < _BlendingLeft) {
-					float bright_val = _BrightnessAmount + pow(cur_x, _FunctionDegree) / (_BlendingLeft)*(1 - _BrightnessAmount);
-					renderTex.rgb = BrightnessSaturationContrast(renderTex.rgb, bright_val, _SaturationAmount, _ContrastAmount);
+					bright_val = bright_val * (_BrightnessAmount + pow(cur_x, _FunctionDegree) / (_BlendingLeft)*(1 - _BrightnessAmount));
+					flag = true;
+				} 
+				if (cur_y > 1 - _BlendingDown) {
+					bright_val = bright_val * (_BrightnessAmount + pow(1 - cur_y, _FunctionDegree) / (_BlendingDown)*(1 - _BrightnessAmount));
+					flag = true;
+				} 
+				if (cur_y < _BlendingUp) {
+					bright_val = bright_val * (_BrightnessAmount + pow(cur_y, _FunctionDegree) / (_BlendingUp)*(1 - _BrightnessAmount));
+					flag = true;
+				} 
+				if (flag == false) {
+					bright_val = 1;
 				}
 
-				if (i.uv.y < _BlendingBottom) renderTex.rgb = BrightnessSaturationContrast(renderTex.rgb, _BrightnessAmount, _SaturationAmount, _ContrastAmount);
-				if (i.uv.y > 1 - _BlendingTop) renderTex.rgb = BrightnessSaturationContrast(renderTex.rgb, _BrightnessAmount, _SaturationAmount, _ContrastAmount);
+				renderTex.rgb = BrightnessSaturationContrast(renderTex.rgb, bright_val, _SaturationAmount, _ContrastAmount);
+			 
 				return  renderTex;
 			}
 			struct appdata

@@ -18,7 +18,8 @@ public class KinectSensor : MonoBehaviour
     private float PlayerSpeed;
     private float timeOfUpdate; 
     private Color SensorColor; 
-    private bool debug;
+    private bool drawTarget;
+    private bool simulate;
     private Vector3 InitPosition;
     GameObject kinectObject;
     GameObject debugTargetObject; 
@@ -29,13 +30,14 @@ public class KinectSensor : MonoBehaviour
     public Vector3 CalibratedKinectsMiddlePoint;
     public Vector3 CalibratedCorrectMiddlePoint;
 
-    public void declareVariables(int ID, Color color, Vector3 InitPosition, Vector3 KinectPosition, Vector3 KinectRotation, int port, bool debug)
+    public void declareVariables(int ID, Color color, Vector3 InitPosition, Vector3 KinectPosition, Vector3 KinectRotation, int port, bool drawTarget,bool simulate)
     {
         this.ID = ID;
         this.SensorColor = color;
         this.InitPosition = InitPosition;
         this.KinectPosition = KinectPosition;
-        this.debug = debug;  
+        this.drawTarget = drawTarget;
+        this.simulate = simulate;
         this.KinectRotation = KinectRotation;
         this.Port = port;
         kinectObject = gameObject;
@@ -58,15 +60,15 @@ public class KinectSensor : MonoBehaviour
         debugTargetObject.GetComponent<MeshRenderer>().material = new Material(Shader.Find("Diffuse"));
         debugTargetObject.GetComponent<MeshRenderer>().material.color = SensorColor; 
         debugTargetObject.name = "debugTargetObject";
-        debugTargetObject.AddComponent<TargetMoveSimulation>();
+        if (simulate) debugTargetObject.AddComponent<TargetMoveSimulation>();
          
         KinectReceiver receiver= kinectObject.AddComponent<KinectReceiver>();
         receiver.startListening(Port);
 
-        if (!debug)
+        if (!drawTarget)
         {
-            debugTargetObject.SetActive(false);
-            kinectObject.SetActive(false);
+            debugTargetObject.GetComponent<MeshRenderer>().enabled = false;
+            kinectObject.GetComponent<MeshRenderer>().enabled = false;
         }
     }
 
@@ -85,6 +87,9 @@ public class KinectSensor : MonoBehaviour
     public void GetUpdatedData(Vector3 newPosition)
     {
         if (debugTargetObject == null) return;
+        newPosition.x/=TrackingManager.instance.transform.localScale.x;
+        newPosition.y /= TrackingManager.instance.transform.localScale.y;
+        newPosition.z /= TrackingManager.instance.transform.localScale.z;
         origanlPosition = newPosition;
         debugTargetObject.transform.localPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z);
 

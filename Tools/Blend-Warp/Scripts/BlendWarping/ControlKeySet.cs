@@ -12,6 +12,8 @@ namespace Assets.Blend_Warp.Script.BlendWarping
 
         BlendingLeft,
         BlendingRight,
+        BlendingUp,
+        BlendingDown,
 
         Brightness
     }
@@ -42,6 +44,9 @@ namespace Assets.Blend_Warp.Script.BlendWarping
                 {ControllingModes.BlendingDegree, KeyCode.Y},
                 {ControllingModes.BlendingLeft, KeyCode.L},
                 {ControllingModes.BlendingRight, KeyCode.R},
+                 {ControllingModes.BlendingUp, KeyCode.U},
+                  {ControllingModes.BlendingDown, KeyCode.D},
+
                 {ControllingModes.Brightness, KeyCode.B}
             };
 
@@ -73,7 +78,11 @@ namespace Assets.Blend_Warp.Script.BlendWarping
 
         public static bool BlendPermitted()
         {
-            return Input.GetKey(ControllingModeHotkeys[ControllingModes.BlendingLeft]) || Input.GetKey(ControllingModeHotkeys[ControllingModes.BlendingRight]);
+            return Input.GetKey(ControllingModeHotkeys[ControllingModes.BlendingLeft]) 
+                || Input.GetKey(ControllingModeHotkeys[ControllingModes.BlendingRight])
+                || Input.GetKey(ControllingModeHotkeys[ControllingModes.BlendingUp])
+                || Input.GetKey(ControllingModeHotkeys[ControllingModes.BlendingDown]
+                );
         }
 
         public static KeyCode GetModeKey(ControllingModes mode)

@@ -31,26 +31,28 @@ public class BlendWarpManager : MonoBehaviour
     public static int Mode;
 
     public int activeCameraDebugger;
-    public BlendWarp_Editor[] cameraEditors;
+    public BlendWarp_Editor[] cameraEditors; 
+     
+    
     //   public GameObject wall;
     //   public Toggle testToggle;
     private void Awake()
     {
         //QualitySettings.vSyncCount = 0;
         //Application.targetFrameRate = 10;
-        instance = this;
+        instance = this; 
     }
     void Start()
     {
          
         Debug.Log("displays connected: " + Display.displays.Length);
     
-        if (Display.displays.Length > 1)
-            Display.displays[1].Activate();
-        if (Display.displays.Length > 2)
-            Display.displays[2].Activate();
-        if (Display.displays.Length > 3)
-            Display.displays[3].Activate();
+        for (int i = 1; i < 8; i++)
+        {
+            if (Display.displays.Length > i)
+                Display.displays[i].Activate();
+        }
+        
         activeCameraDebugger = 0;
 
     }

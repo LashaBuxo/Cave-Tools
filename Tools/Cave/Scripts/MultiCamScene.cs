@@ -6,8 +6,7 @@ using UnityEngine;
 public class MultiCamScene : MonoBehaviour {
     [Header("Cave Details")]
     public int FPS = 30;
-    public float movementSmooth = 5; 
-    public GameObject offset;
+     public GameObject offset;
      
      
     [Header("Draw Cube Planes")]

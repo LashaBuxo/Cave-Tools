@@ -6,9 +6,7 @@ using System.Text;
 using System;
 public class configFileManager : MonoBehaviour {
 
-   
-    public static string path = "Assets/Resources/configFile.txt";
-
+    
     public static bool read = false;
   
     public static bool isSaved()
@@ -18,18 +16,13 @@ public class configFileManager : MonoBehaviour {
     public static void readData()
     {
         try
-        {
-            if (!Directory.Exists("Assets/Resources"))
-            {
-                Directory.CreateDirectory("Assets/Resources");
-            }
-            if (!File.Exists(path))
-            {
-                File.Create(path);
+        { 
+            if (!File.Exists(Application.dataPath + "/StreamingAssets/BlendWarp_Params.json"))
+            { 
                 return;
             }  
             
-            StreamReader reader = new StreamReader(path);
+            StreamReader reader = new StreamReader(Application.dataPath + "/StreamingAssets/BlendWarp_Params.json");
 
             BlendWarp_Data_NativeVariables[] data  = JsonHelper.getJsonArray<BlendWarp_Data_NativeVariables>(reader.ReadToEnd());
            // Debug.Log(data.Length);
@@ -38,18 +31,18 @@ public class configFileManager : MonoBehaviour {
                
                 data[i].ID = BlendWarpManager.instance.cameraEditors[i].data.ID;
 
-               BlendWarpManager.instance.cameraEditors[i].data.RowCount= data[i].RowCount;
-               BlendWarpManager.instance.cameraEditors[i].data.ColCount = data[i].ColCount;
+                BlendWarpManager.instance.cameraEditors[i].data.RowCount= data[i].RowCount;
+                BlendWarpManager.instance.cameraEditors[i].data.ColCount = data[i].ColCount;
 
                 BlendWarpManager.instance.cameraEditors[i].data.Rows= data[i].Rows;
-              BlendWarpManager.instance.cameraEditors[i].data.Cols = data[i].Cols;
+                BlendWarpManager.instance.cameraEditors[i].data.Cols = data[i].Cols;
 
-                 BlendWarpManager.instance.cameraEditors[i].data.Brightness = data[i].Brightness;
+                BlendWarpManager.instance.cameraEditors[i].data.Brightness = data[i].Brightness;
 
-               BlendWarpManager.instance.cameraEditors[i].data.BottomBlending = data[i].BottomBlending;
+                BlendWarpManager.instance.cameraEditors[i].data.DownBlending = data[i].DownBlending;
                 BlendWarpManager.instance.cameraEditors[i].data.leftBlending = data[i].leftBlending;
-            BlendWarpManager.instance.cameraEditors[i].data.RightBlending = data[i].RightBlending;
-             BlendWarpManager.instance.cameraEditors[i].data.TopBlending= data[i].TopBlending;
+                BlendWarpManager.instance.cameraEditors[i].data.RightBlending = data[i].RightBlending;
+                BlendWarpManager.instance.cameraEditors[i].data.UpBlending= data[i].UpBlending;
 
                 BlendWarpManager.instance.cameraEditors[i].data.Grid = new List<Vector2d>();
                 for (int k = 0; k < data[i].Grid_x.Count ; k++)
@@ -80,6 +73,7 @@ public class configFileManager : MonoBehaviour {
         
         string newJson = "{ \"array\": " + json + "}";
         Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
+            if (wrapper == null) return null;
         return wrapper.array;
     }
     //Usage:
@@ -101,7 +95,11 @@ public class configFileManager : MonoBehaviour {
 
 public static void saveData( )
     {
-        StreamWriter writer = new StreamWriter(path, false);
+        if (!Directory.Exists(Application.dataPath + "/StreamingAssets"))
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets");
+
+        
+        StreamWriter writer = new StreamWriter(Application.dataPath + "/StreamingAssets/BlendWarp_Params.json", false);
 
         // JsonHelper.arrayToJson
 
@@ -121,10 +119,10 @@ public static void saveData( )
 
             data[i].Brightness = BlendWarpManager.instance.cameraEditors[i].data.Brightness;
 
-            data[i].BottomBlending= BlendWarpManager.instance.cameraEditors[i].data.BottomBlending ;
+            data[i].DownBlending= BlendWarpManager.instance.cameraEditors[i].data.DownBlending ;
             data[i].leftBlending = BlendWarpManager.instance.cameraEditors[i].data.leftBlending;
             data[i].RightBlending = BlendWarpManager.instance.cameraEditors[i].data.RightBlending;
-            data[i].TopBlending = BlendWarpManager.instance.cameraEditors[i].data.TopBlending;
+            data[i].UpBlending = BlendWarpManager.instance.cameraEditors[i].data.UpBlending;
 
             data[i].Grid_x = new List<double>();
             data[i].Grid_y = new List<double>();

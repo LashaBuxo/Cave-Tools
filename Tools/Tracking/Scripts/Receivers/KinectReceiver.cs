@@ -110,13 +110,16 @@ public class KinectReceiver : MonoBehaviour
         //     Right thumb.
         ThumbRight = 24
     }
-     
+
+    public int gestureTime;
+
     public class KinectData
     {
         public bool isFloorInformation;
         public float KinectTiltAngle;
-     
         public float KinectHeight;
+        public ulong TrackingId;
+
         public List<Vector3> joints;
     }
 
@@ -144,11 +147,13 @@ public class KinectReceiver : MonoBehaviour
         kinectData = JsonUtility.FromJson<KinectData>(Message); 
         if (!kinectData.isFloorInformation)
         {
-           if ( TrackingManager.instance!=null)
-              GetComponent<KinectSensor>().GetUpdatedData(kinectData.joints[(int)JointType.Head]);
-           else
+            if (TrackingManager.instance != null)
             {
-                headPosition= kinectData.joints[(int)JointType.Head];
+                GetComponent<KinectSensor>().GetUpdatedData(kinectData.joints[(int)JointType.Head]);
+            }
+            else
+            {
+                headPosition = kinectData.joints[(int)JointType.Head];
             }
         } else
         {

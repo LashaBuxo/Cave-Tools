@@ -20,8 +20,8 @@ public class BlendWarp_Data   {
 
         public float leftBlending = 0;
         public float RightBlending = 0;
-        public float TopBlending = 0;
-        public float BottomBlending = 0;
+        public float UpBlending = 0;
+        public float DownBlending = 0;
 }
 
 [Serializable]
@@ -41,6 +41,6 @@ public class BlendWarp_Data_NativeVariables
 
     public float leftBlending = 0;
     public float RightBlending = 0;
-    public float TopBlending = 0;
-    public float BottomBlending = 0;
+    public float UpBlending = 0;
+    public float DownBlending = 0;
 }

@@ -7,12 +7,27 @@ using UnityEditor;
 #endif
 using Assets.Blend_Warp.Script.BlendWarping;
 using System;
-
+[Serializable]
 public class BlendWarp_Editor : MonoBehaviour
 {
     [Header("Blend-Warp Editor")]
     [Range(1, 8)]
     public int ID;
+
+    [Serializable]
+    public class AttachedQuads
+    {
+        [Serializable]
+        public class attachedQuadRow
+        {
+            public List<BlendWarp_Editor> cells;
+        }
+        public List<attachedQuadRow> rows;
+    }
+    public bool hasCamera = true;
+    public AttachedQuads attachedQuads;
+    public BlendWarp_Editor parent;
+
     public bool state = false;
     public bool exportsMesh;
 
@@ -41,11 +56,12 @@ public class BlendWarp_Editor : MonoBehaviour
     public float leftBlending = 0;
     [Range(0, 100)]
     public float RightBlending = 0;
-    [Range(0, 100)]
-    public float TopBlending = 0;
-    [Range(0, 100)]
-    public float BottomBlending = 0;
 
+    [Range(0, 100)]
+    public float UpBlending = 0;
+    [Range(0, 100)]
+    public float DownBlending = 0;
+     
     /* 
      * Following variable defines degree of function in shader
      * which applies blending
@@ -61,9 +77,18 @@ public class BlendWarp_Editor : MonoBehaviour
 
     [NonSerialized]
     public GameObject debugObj;
+
+    
     private void Awake()
     {
-
+        if (attachedQuads!=null)
+        foreach (AttachedQuads.attachedQuadRow row in attachedQuads.rows)
+        {
+            foreach (BlendWarp_Editor cell in row.cells)
+            {
+                cell.parent = this;
+            }
+        }
         if (BlendWarpManager.instance.shaderEffect != null)
         {
             BlendingMaterial = new Material(BlendWarpManager.instance.shaderEffect);
@@ -92,9 +117,14 @@ public class BlendWarp_Editor : MonoBehaviour
     List<List<Vector2>> grid = null;
 
     Transform lookingPlane;
+
+    Vector3 quadPosition;
     void Start()
     {
         lookingPlane = GetComponent<Frustum>().lookPlane;
+
+        quadPosition = new Vector3(1000 + ID * 200, 0, 0);
+        if (parent != null) quadPosition = parent.getQuadPosition(ID);
 
         if (configFileManager.read == false)
             createNew_TargetQuad();
@@ -102,15 +132,35 @@ public class BlendWarp_Editor : MonoBehaviour
         {
             load_TargetQuad();
         }
+ 
     }
     public BlendWarp_Data data;
+
+    public Vector3 getQuadPosition(int id)
+    {
+        int x=-1, y=-1;
+        for (int i = 0; i < attachedQuads.rows.Count; i++)
+        {
+            for (int j = 0; j < attachedQuads.rows[i].cells.Count; j++)
+            {
+                if (attachedQuads.rows[i].cells[j].ID == id)
+                {
+                    y = i;
+                    x = j;
+                }
+            }
+        }
+        return new Vector3(1000 + ID * 200 + x * 20, y * -11.25f, 0);
+    }
+
     void load_TargetQuad()
     {
         if (targetQuadObj != null) DestroyImmediate(targetQuadObj);
         targetQuadObj = new GameObject("BlendWarp_Quad_" + ID, typeof(MeshRenderer), typeof(MeshFilter), typeof(BlendWarpQuad), typeof(BlendWarp_Grid));
         // targetQuadObj.transform.parent = transform;
         // quadPlane.AddComponent<BlendWarpQuad>().
-        targetQuadObj.transform.position = new Vector3(1000 + ID * 200, 0, 0);
+        targetQuadObj.transform.position = quadPosition;
+        
         //targetQuadObj.transform.rotation = Quaternion.Euler(0, 180, 0);
 
         // data = new BlendWarp_Data();
@@ -121,20 +171,35 @@ public class BlendWarp_Editor : MonoBehaviour
         //   data.ColCount = gridSize.y;
         RightBlending = data.RightBlending;
         leftBlending = data.leftBlending;
-        TopBlending = data.TopBlending;
-        BottomBlending = data.BottomBlending;
+        UpBlending = data.UpBlending;
+        DownBlending = data.DownBlending;
+
         Brightness = data.Brightness;
-        targetQuadObj.GetComponent<BlendWarpQuad>().startQuad(this, data);
+        startquad();
+         
         debugObj = Instantiate(BlendWarpManager.instance.Debugger, targetQuadObj.transform);
     }
-
+    public void startquad()
+    {
+        if (hasCamera == false)
+        {
+            targetQuadObj.GetComponent<BlendWarpQuad>().startQuad(this, data, false);
+        }
+        else
+        {
+            if (parent == null) targetQuadObj.GetComponent<BlendWarpQuad>().startQuad(this, data, true, 1, 1);
+            else
+           targetQuadObj.GetComponent<BlendWarpQuad>().startQuad(this, data, true, attachedQuads.rows[0].cells.Count,
+                                                              attachedQuads.rows.Count);
+        }
+    }
     public void createNew_TargetQuad()
     {
         if (targetQuadObj != null) DestroyImmediate(targetQuadObj);
         targetQuadObj = new GameObject("BlendWarp_Quad_" + ID, typeof(MeshRenderer), typeof(MeshFilter), typeof(BlendWarpQuad), typeof(BlendWarp_Grid));
         // targetQuadObj.transform.parent = transform;
         // quadPlane.AddComponent<BlendWarpQuad>().
-        targetQuadObj.transform.position = new Vector3(1000 + ID * 200, 0, 0);
+        targetQuadObj.transform.position = quadPosition;
         //targetQuadObj.transform.rotation = Quaternion.Euler(0, 180, 0);
 
         data = new BlendWarp_Data();
@@ -144,13 +209,23 @@ public class BlendWarp_Editor : MonoBehaviour
         data.Cols = new List<double>(2) { 0, 10 * lookingPlane.lossyScale.z / (1.0 * lookingPlane.lossyScale.x) };
         data.RowCount = gridSize.x;
         data.ColCount = gridSize.y;
-        targetQuadObj.GetComponent<BlendWarpQuad>().startQuad(this, data);
+        startquad();
         debugObj = Instantiate(BlendWarpManager.instance.Debugger, targetQuadObj.transform);
     }
     void Update()
     {
+        if (targetQuadObj != null)
+        {
+            Material mat = targetQuadObj.GetComponent<Renderer>().material;
+            mat.SetFloat("_BrightnessAmount", Brightness / 100.0f);
+            mat.SetFloat("_BlendingLeft", leftBlending / 100.0f);
+            mat.SetFloat("_BlendingRight", RightBlending / 100.0f);
+            mat.SetFloat("_BlendingUp", UpBlending / 100.0f);
+            mat.SetFloat("_BlendingDown", DownBlending / 100.0f);
+            mat.SetFloat("_FunctionDegree", FunctionDegree);
+        }
         if (state == false) return;
-
+        
         if (Input.GetKey(KeyCode.B))
         {
 
@@ -192,20 +267,35 @@ public class BlendWarp_Editor : MonoBehaviour
 
             int blendingLeft = Input.GetKey(ControlKeySet.GetModeKey(ControllingModes.BlendingLeft)) ? 1 : 0;
             int blendingRight = Input.GetKey(ControlKeySet.GetModeKey(ControllingModes.BlendingRight)) ? 1 : 0;
+            int blendingUp = Input.GetKey(ControlKeySet.GetModeKey(ControllingModes.BlendingUp)) ? 1 : 0;
+            int blendingDown = Input.GetKey(ControlKeySet.GetModeKey(ControllingModes.BlendingDown)) ? 1 : 0;
+
             int increaseBlending = Input.GetKey(ControlKeySet.GetControlKey(Controls.BlendingIncrease)) ? 1 : 0;
             int decreaseBlending = Input.GetKey(ControlKeySet.GetControlKey(Controls.BlendingDecrease)) ? 1 : 0;
 
+            if (blendingLeft > 0)
             leftBlending = Math.Max(0, Math.Min(100, blendingLeft * (leftBlending
                                                        + increaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed
                                                        - decreaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed)));
-
+            if (blendingRight > 0)
             RightBlending = Math.Max(0, Math.Min(100, blendingRight * (RightBlending
                                                        + increaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed
                                                        - decreaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed)));
-
+            if (blendingUp > 0)
+            UpBlending = Math.Max(0, Math.Min(100, blendingUp * (UpBlending
+                                                       + increaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed
+                                                       - decreaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed)));
+            if (blendingDown > 0)
+            DownBlending = Math.Max(0, Math.Min(100, blendingDown * (DownBlending
+                                                       + increaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed
+                                                       - decreaseBlending * (amplify * (amplifierSpeed - 1) + 1) * BlendWarpManager.instance.blendMoveSpeed)));
+             
             data.leftBlending = leftBlending;
             data.RightBlending = RightBlending;
-            GUImessages.instance.showMessage("leftBlending: " + (int)(data.leftBlending) + "%\nRightBlending: " + (int)(data.RightBlending) + "%", Color.green, true);
+            data.UpBlending = UpBlending;
+            data.DownBlending = DownBlending;
+
+            GUImessages.instance.showMessage("Blend-Left-Right-Up-Down: " + (int)(data.leftBlending) + " " + (int)(data.RightBlending) + " " + (int)(data.UpBlending) + " " + (int)(data.DownBlending), Color.green, true);
         }
         if (Input.GetKey(KeyCode.Y))
         {
@@ -243,17 +333,16 @@ public class BlendWarp_Editor : MonoBehaviour
         state = on;
     }
 
-    void OnRenderImage(RenderTexture source, RenderTexture destination)
-    {
-        BlendingMaterial.SetFloat("_BrightnessAmount", Brightness / 100.0f);
-        BlendingMaterial.SetFloat("_BlendingLeft", leftBlending / 100.0f);
-        BlendingMaterial.SetFloat("_BlendingRight", RightBlending / 100.0f);
-        BlendingMaterial.SetFloat("_BlendingTop", TopBlending / 100.0f);
-        BlendingMaterial.SetFloat("_BlendingBottom", BottomBlending / 100.0f);
-        BlendingMaterial.SetFloat("_FunctionDegree", FunctionDegree);
-        Graphics.Blit(source, destination, BlendingMaterial);
-
-    }
+    //void OnRenderImage(RenderTexture source, RenderTexture destination)
+    //{
+    //    BlendingMaterial.SetFloat("_BrightnessAmount", Brightness / 100.0f);
+    //    BlendingMaterial.SetFloat("_BlendingLeft", leftBlending / 100.0f);
+    //    BlendingMaterial.SetFloat("_BlendingRight", RightBlending / 100.0f);
+    //    BlendingMaterial.SetFloat("_BlendingUp", UpBlending / 100.0f);
+    //    BlendingMaterial.SetFloat("_BlendingDown", DownBlending / 100.0f);
+    //    BlendingMaterial.SetFloat("_FunctionDegree", FunctionDegree);
+    //    Graphics.Blit(source, destination, BlendingMaterial); 
+    //}
 
 
 }

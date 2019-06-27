@@ -1514,9 +1514,9 @@ GameObject:
   - component: {fileID: 9062190887365013275}
   - component: {fileID: 9062190887365013276}
   m_Layer: 0
-  m_Name: MultiCam Scene
+  m_Name: Cave Manager
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 5132851093641282708, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -1527,7 +1527,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9062190887365013274}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -1549,7 +1549,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FPS: 60
-  movementSmooth: 5
   offset: {fileID: 9062190887577407566}
   transparentBorders: 1
   camerasBackgroundColor: {r: 0, g: 0, b: 0, a: 1}
@@ -2568,6 +2567,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9062190887870707654}
+  - component: {fileID: 539648342}
   m_Layer: 0
   m_Name: OutsidePlayer
   m_TagString: Untagged
@@ -2583,7 +2583,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9062190887870707653}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalPosition: {x: 1.29, y: 3.28, z: 2.73}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 9062190887176479256}
@@ -2593,6 +2593,19 @@ Transform:
   m_Father: {fileID: 9062190888061893497}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &539648342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9062190887870707653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb674b2190df73d49bde79e9413238d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainScript: {fileID: 9062190887365013276}
 --- !u!1 &9062190887883157501
 GameObject:
   m_ObjectHideFlags: 0
@@ -3048,7 +3061,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9062190888161486762}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5, y: 5, z: 5}
+  m_LocalPosition: {x: 2.72, y: 5, z: 9.13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 9062190888214379912}

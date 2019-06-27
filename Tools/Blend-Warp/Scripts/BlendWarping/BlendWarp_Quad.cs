@@ -1,14 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 public class BlendWarpQuad : MonoBehaviour {
     BlendWarp_Editor Editor;
     BlendWarp_Data Data;
-     
-    public void startQuad(BlendWarp_Editor editor,BlendWarp_Data data)
+      
+
+    public void startQuad(BlendWarp_Editor editor,BlendWarp_Data data,bool hasCamera,int camx=-1,int camy=-1)
     {
         Editor = editor;
         Data = data;
@@ -16,7 +18,9 @@ public class BlendWarpQuad : MonoBehaviour {
         attachMesh();
         attachMaterial();
         attachGrid();
-        attachCamera();
+
+         if (hasCamera)
+        attachCamera(camx,camy);
     }
 
     public void attachMesh()
@@ -56,7 +60,10 @@ public class BlendWarpQuad : MonoBehaviour {
 #if UNITY_EDITOR
         if (Editor.exportsMesh)
         {
-            AssetDatabase.CreateAsset(mesh, "Assets/Resources/" +  name + ".mesh");
+            if (!Directory.Exists(Application.dataPath + "/StreamingAssets"))
+                Directory.CreateDirectory(Application.dataPath + "/StreamingAssets");
+
+            AssetDatabase.CreateAsset(mesh, "Assets/StreamingAssets/" +  name + ".mesh");
             AssetDatabase.SaveAssets();
         }
 #endif
@@ -67,20 +74,26 @@ public class BlendWarpQuad : MonoBehaviour {
     {
         GetComponent<BlendWarp_Grid>().drawGrid(Data ,Editor);
     }
-    public void attachCamera()
+
+    public void attachCamera(int x,int y)
     {
-       GameObject cam= Instantiate(BlendWarpManager.instance.planeLookingCamera, transform);
+        GameObject cam= Instantiate(BlendWarpManager.instance.planeLookingCamera, transform);
         cam.GetComponent<Camera>().clearFlags = CameraClearFlags.SolidColor;
         cam.GetComponent<Camera>().backgroundColor = Color.black;
         cam.GetComponent<Camera>().targetDisplay = Editor.ID-1;
         Vector3 pos = cam.transform.position;
 
         Vector3 scal = cam.transform.Find("Plane").localScale;
-        scal.z = 2*Editor.projectorResolution.y / (1.0f*Editor.projectorResolution.x);
-        scal.x = 2*1;
+        scal.z = y*2*Editor.projectorResolution.y / (1.0f*Editor.projectorResolution.x);
+        scal.x = x*2*1;
+
+   
+
         cam.transform.Find("Plane").localScale = scal;
 
         pos.z = -3;
+        pos.x += 10 * (x-1);
+        pos.y += -5.625f * (y - 1);
         cam.transform.position = pos;
 
     }

@@ -6,7 +6,7 @@ using UnityEditor;
 
 using System.IO;
 using System;
-
+ 
 [CustomEditor(typeof(TrackingManager))]
  
 
@@ -27,7 +27,7 @@ public class ConfigManager : Editor {
                 obj = myScript.tracking;
 
                 string json = JsonUtility.ToJson(obj);
-                string path = Application.dataPath + "/StreamingAssets/trackingParams.json";
+                string path = Application.dataPath + "/StreamingAssets/tracking_Params.json";
 
                 if (!Directory.Exists(Application.dataPath + "/StreamingAssets"))
                     Directory.CreateDirectory(Application.dataPath + "/StreamingAssets");
