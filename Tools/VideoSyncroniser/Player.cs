@@ -6,7 +6,8 @@ using UnityEngine.Video;
 public class Player : MonoBehaviour
 {
     private VideoSynchroniser Synchroniser;
-    public string ConfigFile = "C:\\Users\\Vr House\\Desktop\\config.cfg";
+    public string ConfigFile = "config.cfg";
+    public string videoFile = "video.mp4";
     public int TickDelay = 3;
     public int TicksTillConverge = 1;
     public float AccumulatedTime = 0;
@@ -36,7 +37,7 @@ public class Player : MonoBehaviour
 
         // Set the video to play. URL supports local absolute or relative paths.
         // Here, using absolute.
-        VPlayer.url = "C:\\Users\\Vr House\\Desktop\\Honey Bees 96fps In 4K (ULTRA HD)(4ksamples.com).mp4";
+        VPlayer.url = videoFile;
 
         // Restart from beginning when done.
         VPlayer.isLooping = true;
