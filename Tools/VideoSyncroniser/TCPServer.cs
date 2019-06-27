@@ -110,12 +110,12 @@ public class TCPServer
             Byte[] bytes = new Byte[256];
             int i = stream.Read(bytes, 0, bytes.Length);
             String data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-            Debug.Log(("Got Data: {0}", data));
+            Debug.Log(data);
             CMD cmd = (CMD)(data[0] - '0');
             switch (cmd)
             {
                 case CMD.Hello:
-                    data = string.Format("{0}|{1}", CMD.Hello, VideoSynchroniser.Instance().CurrentTick);
+                    data = string.Format("{0}|{1}", (int)CMD.Hello, VideoSynchroniser.Instance().CurrentTick);
                     bytes = System.Text.Encoding.ASCII.GetBytes(data);
                     stream.Write(bytes, 0, bytes.Length);
                     if (IsAdjusting)
@@ -149,7 +149,7 @@ public class TCPServer
                     {
                         continue;
                     }
-                    data = string.Format("{0}|{1}", CMD.AdjustFrame, MyFrame);
+                    data = string.Format("{0}|{1}", (int)CMD.AdjustFrame, MyFrame);
                     bytes = System.Text.Encoding.ASCII.GetBytes(data);
                     stream.Write(bytes, 0, bytes.Length);
                     client.Close();
@@ -177,7 +177,7 @@ public class TCPServer
             Debug.Log("Sending Keepalive to IP " + address.ToString());
             TcpClient client = new TcpClient(address.ToString(), Port);
             NetworkStream stream = client.GetStream();
-            String data = string.Format("{0}|{1}", CMD.KeepAlive, VideoSynchroniser.Instance().CurrentTick);
+            String data = string.Format("{0}|{1}", (int)CMD.KeepAlive, VideoSynchroniser.Instance().CurrentTick);
             Byte[] bytes = new Byte[256];
             bytes = System.Text.Encoding.ASCII.GetBytes(data);
             stream.Write(bytes, 0, bytes.Length);
@@ -197,7 +197,7 @@ public class TCPServer
             }
             TcpClient client = new TcpClient(address.ToString(), Port);
             NetworkStream stream = client.GetStream();
-            String data = string.Format("{0}|{1}", CMD.AdjustFrame, VideoSynchroniser.Instance().CurrentTick);
+            String data = string.Format("{0}|{1}", (int)CMD.AdjustFrame, VideoSynchroniser.Instance().CurrentTick);
             Byte[] bytes = new Byte[256];
             bytes = System.Text.Encoding.ASCII.GetBytes(data);
             stream.Write(bytes, 0, bytes.Length);

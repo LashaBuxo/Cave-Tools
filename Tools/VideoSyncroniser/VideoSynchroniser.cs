@@ -73,7 +73,7 @@ public sealed class VideoSynchroniser
             thread = new Thread(Server.SendAdjustFrame);
         } else
         {
-            Debug.Log("KeepAlive");
+            Debug.Log("KeepAlive " + CurrentTick);
             thread = new Thread(Server.SendKeepAlive);
         }
         thread.Start();
