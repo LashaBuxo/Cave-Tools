@@ -276,7 +276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 731534ebaff8fbd468c8017227f4790c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ConfigFile: C:\Users\Vr House\Desktop\config.cfg
+  ConfigFile: video.mp4
   TickDelay: 3
   TicksTillConverge: 1
   AccumulatedTime: 0
