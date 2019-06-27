@@ -29,7 +29,7 @@ public class TCPServer
     bool IsAdjusting;
     System.Object LockObj;
     int MyFrame;
-   
+
 
 
     public TCPServer(IPAddress address, int port, IPAddress[] allowedAddresses)
@@ -45,8 +45,7 @@ public class TCPServer
         this.LockObj = new System.Object();
         this.MyFrame = -1;
 
-
-        foreach (IPAddress curAddress in AllowedAddresses)
+        foreach (IPAddress curAddress in allowedAddresses)
         {
             if (curAddress.Equals(address))
             {
@@ -62,12 +61,15 @@ public class TCPServer
         serverListenThread.Start();
     }
 
-    private bool SendHelloMessage ()
+    private bool SendHelloMessage()
     {
+        Debug.Log("Creating TCP Server " + AllowedAddresses.Count);
+        bool rtn = false;
         foreach (IPAddress address in AllowedAddresses)
         {
             try
             {
+                Debug.Log("Sending hello to " + address.ToString());
                 TcpClient client = new TcpClient(address.ToString(), Port);
                 NetworkStream stream = client.GetStream();
                 Byte[] bytes = System.Text.Encoding.ASCII.GetBytes("0");
@@ -77,19 +79,19 @@ public class TCPServer
                 string[] chunks = data.Split('|');
                 VideoSynchroniser.Instance().CurrentTick = int.Parse(chunks[1]);
                 client.Close();
-                return true;
+                rtn = true;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Debug.Log(e.Message);
             }
 
         }
 
-        return false;
+        return rtn;
     }
 
-    private void Listen ()
+    private void Listen()
     {
         this.server = new TcpListener(Address, Port);
         this.server.Start();
@@ -115,15 +117,16 @@ public class TCPServer
                 case CMD.Hello:
                     data = string.Format("{0}|{1}", CMD.Hello, VideoSynchroniser.Instance().CurrentTick);
                     bytes = System.Text.Encoding.ASCII.GetBytes(data);
-                    stream.Write(bytes, 0,  bytes.Length);
+                    stream.Write(bytes, 0, bytes.Length);
                     if (IsAdjusting)
                     {
                         SecondaryActiveAddresses.Add(clientAddress);
-                    } else
+                    }
+                    else
                     {
                         ActiveAddresses.Add(clientAddress);
                     }
-                        break;
+                    break;
                 case CMD.KeepAlive:
                     Debug.Log("KeepAlive Received from " + clientAddress.ToString());
                     if (IsAdjusting && !ActiveAddresses.Contains(clientAddress))
@@ -132,7 +135,8 @@ public class TCPServer
                         {
                             SecondaryActiveAddresses.Add(clientAddress);
                         }
-                    } else
+                    }
+                    else
                     {
                         ActiveAddresses.Add(clientAddress);
                     }
@@ -145,7 +149,7 @@ public class TCPServer
                     {
                         continue;
                     }
-                    data =string.Format("{0}|{1}", CMD.AdjustFrame, MyFrame);
+                    data = string.Format("{0}|{1}", CMD.AdjustFrame, MyFrame);
                     bytes = System.Text.Encoding.ASCII.GetBytes(data);
                     stream.Write(bytes, 0, bytes.Length);
                     client.Close();
@@ -162,13 +166,15 @@ public class TCPServer
         {
             Monitor.PulseAll(LockObj);
             Monitor.Exit(LockObj);
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             Console.WriteLine(e.Message);
         }
 
         foreach (IPAddress address in ActiveAddresses)
         {
+            Debug.Log("Sending Keepalive to IP " + address.ToString());
             TcpClient client = new TcpClient(address.ToString(), Port);
             NetworkStream stream = client.GetStream();
             String data = string.Format("{0}|{1}", CMD.KeepAlive, VideoSynchroniser.Instance().CurrentTick);

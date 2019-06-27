@@ -59,6 +59,7 @@ public sealed class VideoSynchroniser
         this.CurrentTick = 0;
         this.AdjustedFrame = -1;
         ReadConfiguration(ConfigFile);
+
         this.Server = new TCPServer(IPAddress.Parse(ServerIPAddress), Port, NodeList);
     }
 
