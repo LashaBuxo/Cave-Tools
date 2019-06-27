@@ -53,33 +53,35 @@ public class TCPServer
             }
             AllowedAddresses.Add(curAddress);
         }
-        if (SendHelloMessage())
-        {
-            Console.WriteLine("No one was listening!");
-        }
+        SendHelloMessage();
         Thread serverListenThread = new Thread(Listen);
         serverListenThread.Start();
     }
 
-    private bool SendHelloMessage()
+    private static void ReceiveHelloMessage (IAsyncResult res)
     {
-        Debug.Log("Creating TCP Server " + AllowedAddresses.Count);
-        bool rtn = false;
+        TcpClient client = (TcpClient)res.AsyncState;
+        IPAddress address = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
+        Debug.Log("Received from " + address.ToString());
+        NetworkStream stream = client.GetStream();
+        Byte[] bytes = System.Text.Encoding.ASCII.GetBytes("0");
+        stream.Write(bytes, 0, bytes.Length);
+        stream.Read(bytes, 0, bytes.Length);
+        string data = System.Text.Encoding.ASCII.GetString(bytes);
+        string[] chunks = data.Split('|');
+        VideoSynchroniser.Instance().CurrentTick = int.Parse(chunks[1]);
+        client.Close();
+    }
+
+    private void SendHelloMessage()
+    {
         foreach (IPAddress address in AllowedAddresses)
         {
             try
             {
                 Debug.Log("Sending hello to " + address.ToString());
-                TcpClient client = new TcpClient(address.ToString(), Port);
-                NetworkStream stream = client.GetStream();
-                Byte[] bytes = System.Text.Encoding.ASCII.GetBytes("0");
-                stream.Write(bytes, 0, bytes.Length);
-                stream.Read(bytes, 0, bytes.Length);
-                string data = System.Text.Encoding.ASCII.GetString(bytes);
-                string[] chunks = data.Split('|');
-                VideoSynchroniser.Instance().CurrentTick = int.Parse(chunks[1]);
-                client.Close();
-                rtn = true;
+                TcpClient client = new TcpClient();
+                client.BeginConnect(address.ToString(), Port, new AsyncCallback(TCPServer.ReceiveHelloMessage), client);
             }
             catch (Exception e)
             {
@@ -87,8 +89,6 @@ public class TCPServer
             }
 
         }
-
-        return rtn;
     }
 
     private void Listen()
@@ -101,7 +101,7 @@ public class TCPServer
             Debug.Log("Waiting for connection");
             TcpClient client = server.AcceptTcpClient();
             Debug.Log("Connected!");
-            IPAddress clientAddress = IPAddress.Parse(((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString());
+            IPAddress clientAddress = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
             if (!AllowedAddresses.Contains(clientAddress))
             {
                 continue;
