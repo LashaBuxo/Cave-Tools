@@ -309,8 +309,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ConfigFile: Assets\\Cave\\Tools\\VideoSyncroniser\\config.cfg
   videoFile: Assets\\Cave\\Tools\\VideoSyncroniser\\video.mp4
-  TickDelay: 10
-  TicksTillConverge: 3
+  TickDelay: 2
+  TicksTillConverge: 2
   AccumulatedTime: 0
   ServerIPAddress: 192.168.0.202
   ServerPort: 10001

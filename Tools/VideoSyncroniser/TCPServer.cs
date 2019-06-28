@@ -153,7 +153,7 @@ public class TCPServer
                     {
                         continue;
                     }
-                    data = string.Format("{0}|{1}", (int)CMD.AdjustFrame, MyFrame);
+                    data = MyFrame.ToString();
                     bytes = System.Text.Encoding.ASCII.GetBytes(data);
                     stream.Write(bytes, 0, bytes.Length);
                     client.Close();
@@ -180,11 +180,15 @@ public class TCPServer
         {
             Debug.Log("Sending Keepalive to IP " + address.ToString());
             TcpClient client = new TcpClient(address.ToString(), Port);
+            IPAddress clientAddress = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
             NetworkStream stream = client.GetStream();
             String data = string.Format("{0}|{1}", (int)CMD.KeepAlive, VideoSynchroniser.Instance().CurrentTick);
             Byte[] bytes = new Byte[256];
             bytes = System.Text.Encoding.ASCII.GetBytes(data);
             stream.Write(bytes, 0, bytes.Length);
+            stream.Read(bytes, 0, bytes.Length);
+            data = System.Text.Encoding.ASCII.GetString (bytes);
+            Received.Add(clientAddress, int.Parse (data);
             AdjustedCnt++;
             client.Close();
         }
@@ -195,6 +199,7 @@ public class TCPServer
         IsAdjusting = true;
         foreach (IPAddress address in ActiveAddresses)
         {
+            Debug.Log("Adjusting with IP " + address.ToString());
             if (Received.ContainsKey(address))
             {
                 continue;
@@ -208,6 +213,7 @@ public class TCPServer
             stream.Read(bytes, 0, bytes.Length);
 
         }
+        Debug.Log("AdjustCnt " + AdjustedCnt + " AllowedCnt " + ActiveAddresses.Count);
         Monitor.Enter(LockObj);
         Int32 minFrame = Int32.MaxValue;
         if (AdjustedCnt == ActiveAddresses.Count)
