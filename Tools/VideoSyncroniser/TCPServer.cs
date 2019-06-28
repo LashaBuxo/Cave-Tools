@@ -132,16 +132,21 @@ public class TCPServer
                 case CMD.KeepAlive:
                     Debug.Log("Received KeepAlive Message");
                     Debug.Log("KeepAlive Received from " + clientAddress.ToString());
-                    if (IsAdjusting && !ActiveAddresses.Contains(clientAddress))
+                    if (IsAdjusting)
                     {
                         if (!SecondaryActiveAddresses.Contains(clientAddress))
                         {
+                            Debug.Log("Adding in SecondaryActiveAddresses");
                             SecondaryActiveAddresses.Add(clientAddress);
                         }
                     }
                     else
                     {
-                        ActiveAddresses.Add(clientAddress);
+                        if (!ActiveAddresses.Contains(clientAddress))
+                        {
+                            Debug.Log("Adding in ActiveAddresses");
+                            ActiveAddresses.Add(clientAddress);
+                        }
                     }
                     break;
                 case CMD.AdjustFrame:
@@ -188,7 +193,7 @@ public class TCPServer
             stream.Write(bytes, 0, bytes.Length);
             stream.Read(bytes, 0, bytes.Length);
             data = System.Text.Encoding.ASCII.GetString (bytes);
-            Received.Add(clientAddress, int.Parse (data);
+            Received.Add(clientAddress, int.Parse (data));
             AdjustedCnt++;
             client.Close();
         }
