@@ -278,8 +278,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ConfigFile: Assets/Cave/config.cfg
   videoFile: Assets/Cave/video.mp4
-  TickDelay: 3
-  TicksTillConverge: 1
+  TickDelay: 5
+  TicksTillConverge: 2
   AccumulatedTime: 0
   ServerIPAddress: 192.168.0.200
   ServerPort: 10001

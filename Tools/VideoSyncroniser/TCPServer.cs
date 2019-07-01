@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Collections.Concurrent;
+using System.IO;
 
 public class TCPServer
 {
@@ -46,10 +47,12 @@ public class TCPServer
         string rtn = "";
         int total_len = 0;
 
+        MemoryStream memoryStream = new MemoryStream();
         while (total_len < BUFFER_LEN)
         {
+            stream.CopyTo(memoryStream);
             byte[] curBytes = new byte[BUFFER_LEN];
-            total_len += (int)stream.Length;
+            total_len += (int)memoryStream.Length;
             rtn += System.Text.Encoding.ASCII.GetString(curBytes);
             stream.Read(curBytes, 0, (int)stream.Length);
         }
