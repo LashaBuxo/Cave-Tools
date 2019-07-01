@@ -17,6 +17,8 @@ public class TCPServer
         AdjustFrame = 2
     }
 
+    private const int BUFFER_LEN = 256;
+
     private int Port;
     private IPAddress Address;
     private TcpListener server;
@@ -30,6 +32,30 @@ public class TCPServer
     System.Object LockObj;
     int MyFrame;
 
+    private static byte[] GenerateByteMessage(string data)
+    {
+        byte[] tempByteArray = System.Text.Encoding.ASCII.GetBytes(data);
+        byte[] rtn = new byte[BUFFER_LEN];
+        tempByteArray.CopyTo(rtn, 0);
+
+        return rtn;
+    }
+
+    private static string GetMessageFromNetworkStream(NetworkStream stream)
+    {
+        string rtn = "";
+        int total_len = 0;
+
+        while (total_len < BUFFER_LEN)
+        {
+            byte[] curBytes = new byte[BUFFER_LEN];
+            total_len += (int)stream.Length;
+            rtn += System.Text.Encoding.ASCII.GetString(curBytes);
+            stream.Read(curBytes, 0, (int)stream.Length);
+        }
+
+        return rtn;
+    }
 
 
     public TCPServer(IPAddress address, int port, IPAddress[] allowedAddresses)
@@ -60,17 +86,49 @@ public class TCPServer
 
     private static void ReceiveHelloMessage (IAsyncResult res)
     {
-        TcpClient client = (TcpClient)res.AsyncState;
+        KeyValuePair<TCPServer, TcpClient> pair = (KeyValuePair<TCPServer, TcpClient>)res.AsyncState;
+        TCPServer serv = pair.Key;
+        TcpClient client = pair.Value;
+
         IPAddress address = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
-        Debug.Log("Received from " + address.ToString());
         NetworkStream stream = client.GetStream();
-        Byte[] bytes = System.Text.Encoding.ASCII.GetBytes("0");
+        Debug.Log("Received Hello from " + address.ToString());
+
+        byte[] bytes = GenerateByteMessage ("");
         stream.Write(bytes, 0, bytes.Length);
-        stream.Read(bytes, 0, bytes.Length);
-        string data = System.Text.Encoding.ASCII.GetString(bytes);
+
+        string data = GetMessageFromNetworkStream(stream);
         string[] chunks = data.Split('|');
         VideoSynchroniser.Instance().CurrentTick = int.Parse(chunks[1]);
+
         client.Close();
+    }
+
+    private static void ReceiveKeepAliveMessage (IAsyncResult res)
+    {
+        KeyValuePair<TCPServer, TcpClient> pair = (KeyValuePair<TCPServer, TcpClient>)res.AsyncState;
+        TCPServer serv = pair.Key;
+        TcpClient client = pair.Value;
+
+        IPAddress clientAddress = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
+        Debug.Log("Received KeepAlive from " + clientAddress.ToString());
+        Debug.Log("KeepAlive Received from " + clientAddress.ToString());
+        if (serv.IsAdjusting)
+        {
+            if (!serv.SecondaryActiveAddresses.Contains(clientAddress))
+            {
+                Debug.Log("Adding in SecondaryActiveAddresses");
+                serv.SecondaryActiveAddresses.Add(clientAddress);
+            }
+        }
+        else
+        {
+            if (!serv.ActiveAddresses.Contains(clientAddress))
+            {
+                Debug.Log("Adding in ActiveAddresses");
+                serv.ActiveAddresses.Add(clientAddress);
+            }
+        }
     }
 
     private void SendHelloMessage()
@@ -81,7 +139,7 @@ public class TCPServer
             {
                 Debug.Log("Sending hello to " + address.ToString());
                 TcpClient client = new TcpClient();
-                client.BeginConnect(address.ToString(), Port, new AsyncCallback(TCPServer.ReceiveHelloMessage), client);
+                client.BeginConnect(address.ToString(), Port, new AsyncCallback(TCPServer.ReceiveHelloMessage), new KeyValuePair <TCPServer, TcpClient>(this, client));
             }
             catch (Exception e)
             {
@@ -107,19 +165,19 @@ public class TCPServer
                 continue;
             }
             NetworkStream stream = client.GetStream();
-            Byte[] bytes = new Byte[256];
-            int i = stream.Read(bytes, 0, bytes.Length);
-            String data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+
+            String data = GetMessageFromNetworkStream(stream);
             Debug.Log(data);
             CMD cmd = (CMD)(data[0] - '0');
             Debug.Log("dddddddddd " + cmd);
             switch (cmd)
             {
                 case CMD.Hello:
-                    Debug.Log("Received Hello Message");
+                    Debug.Log("Received Hello message from " + clientAddress.ToString());
                     data = string.Format("{0}|{1}", (int)CMD.Hello, VideoSynchroniser.Instance().CurrentTick);
-                    bytes = System.Text.Encoding.ASCII.GetBytes(data);
+                    byte[] bytes = GenerateByteMessage(data);
                     stream.Write(bytes, 0, bytes.Length);
+
                     if (IsAdjusting)
                     {
                         SecondaryActiveAddresses.Add(clientAddress);
@@ -130,8 +188,7 @@ public class TCPServer
                     }
                     break;
                 case CMD.KeepAlive:
-                    Debug.Log("Received KeepAlive Message");
-                    Debug.Log("KeepAlive Received from " + clientAddress.ToString());
+                    Debug.Log("Received KeepAlive message from " + clientAddress.ToString());
                     if (IsAdjusting)
                     {
                         if (!SecondaryActiveAddresses.Contains(clientAddress))
@@ -150,10 +207,10 @@ public class TCPServer
                     }
                     break;
                 case CMD.AdjustFrame:
-                    Debug.Log("Received AdjustFrame Message");
+                    Debug.Log("Received AdjustFrame message from: " + clientAddress.ToString());
+
                     string[] chunks = data.Split('|');
-                    int curFrame = int.Parse(chunks[1]);
-                    Received.Add(clientAddress, curFrame);
+                    Received.Add(clientAddress, int.Parse(chunks[1]));
                     while (MyFrame == -1)
                     {
                         continue;
@@ -187,9 +244,9 @@ public class TCPServer
             TcpClient client = new TcpClient(address.ToString(), Port);
             NetworkStream stream = client.GetStream();
             String data = string.Format("{0}|{1}", (int)CMD.KeepAlive, VideoSynchroniser.Instance().CurrentTick);
-            Byte[] bytes = new Byte[256];
-            bytes = System.Text.Encoding.ASCII.GetBytes(data);
+            byte[] bytes = GenerateByteMessage (data);
             stream.Write(bytes, 0, bytes.Length);
+
             client.Close();
         }
     }
@@ -207,12 +264,11 @@ public class TCPServer
             TcpClient client = new TcpClient(address.ToString(), Port);
             IPAddress clientAddress = ((IPEndPoint)client.Client.RemoteEndPoint).Address;
             NetworkStream stream = client.GetStream();
+
             String data = string.Format("{0}|{1}", (int)CMD.AdjustFrame, VideoSynchroniser.Instance().CurrentTick);
-            Byte[] bytes = new Byte[256];
-            bytes = System.Text.Encoding.ASCII.GetBytes(data);
+            byte[] bytes = GenerateByteMessage(data);
             stream.Write(bytes, 0, bytes.Length);
-            stream.Read(bytes, 0, bytes.Length);
-            data = System.Text.Encoding.ASCII.GetString(bytes);
+            data = GetMessageFromNetworkStream(stream);
             Received.Add(clientAddress, int.Parse(data));
             AdjustedCnt++;
 
