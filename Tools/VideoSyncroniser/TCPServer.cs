@@ -54,7 +54,7 @@ public class TCPServer
             byte[] curBytes = new byte[BUFFER_LEN];
             total_len += (int)memoryStream.Length;
             rtn += System.Text.Encoding.ASCII.GetString(curBytes);
-            stream.Read(curBytes, 0, (int)stream.Length);
+            memoryStream.Read(curBytes, 0, (int)memoryStream.Length);
         }
 
         return rtn;
